@@ -5,7 +5,7 @@ This project focuses on designing and implementing a **SQL-based Data Warehouse*
 It demonstrates core data warehousing concepts such as **ETL processes, dimensional modeling, fact and dimension tables, and analytical queries**.
 ## 🏗️ High-Level Data Warehouse Architecture
 
-![High Level Data Warehouse Architecture](docs/Dara_Warehose.drawio.png)
+![High Level Data Warehouse Architecture](docs/Dara_Warehose.drawio.html)
 
 This diagram represents the **end-to-end architecture of the SQL Data Warehouse**, following a **Bronze–Silver–Gold** layered approach to data processing and analytics.
 
