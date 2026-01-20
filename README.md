@@ -28,6 +28,7 @@ This diagram represents the **end-to-end architecture of the SQL Data Warehouse*
 - No transformations applied
 - Purpose: Data archival and traceability
 
+![Bronze layer Architecture](docs/Bronze_later.png)
 ---
 
 ### 🥈 Silver Layer (Cleaned & Structured Data)
