@@ -150,5 +150,16 @@ SELECT DISTINCT
     gen
 FROM silver.erp_cust_az12;
 
+-- ====================================================================
+-- Checking 'silver.erp_loc_a101'
+-- ====================================================================
+-- Data Standardization & Consistency: Country
+-- Expectation: Standardized country names (e.g. 'Germany', 'United States', 'n/a')
+SELECT DISTINCT
+    cntry
+FROM silver.erp_loc_a101
+ORDER BY cntry;
+
+
 
 
