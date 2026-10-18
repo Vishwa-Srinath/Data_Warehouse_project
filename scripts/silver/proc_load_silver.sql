@@ -251,3 +251,8 @@ BEGIN
         PRINT '================================================';
     END CATCH
 END;
+GO
+
+-- To execute the stored procedure:
+-- EXEC silver.load_silver;
+
