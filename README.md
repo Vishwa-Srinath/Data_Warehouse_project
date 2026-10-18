@@ -57,31 +57,85 @@ This diagram represents the **end-to-end architecture of the SQL Data Warehouse*
 ---
 
 ### 🥇 Gold Layer (Business-Ready Data)
-- Stores **business-ready datasets**
-- Object type: **Views**
-- No physical data load
+- Stores **business-ready datasets** modeled into an analytical **Star Schema**
+- Object type: **Views** (virtual layer providing real-time data access)
 - Transformations:
-  - Data integration
-  - Aggregations
-  - Business logic
-- Data models:
-  - Star schema
-  - Fact tables
-  - Aggregated tables
-- Purpose: Optimized for analytics and reporting
+  - Multi-system customer data integration (CRM + ERP demographics and location)
+  - Active product catalog derivation (`WHERE prd_end_dt IS NULL`) joined with ERP categories
+  - Surrogate key mapping (`customer_key`, `product_key`) replacing source natural keys in transactions
+  - Business-friendly renaming and consistent casing
+- Purpose: Optimized for business intelligence, interactive dashboards, and SQL reporting
+
+![Gold Layer Star Schema Model](docs/data_model.png)
+
+#### 🛠️ Gold Layer Implementation
+* **DDL Scripts**: [`scripts/gold/ddl_gold.sql`](scripts/gold/ddl_gold.sql) defines the Star Schema analytical views:
+  - `gold.dim_customers`: Enriched customer profiles with location and demographics.
+  - `gold.dim_products`: Active catalog items linked to categories and maintenance flags.
+  - `gold.fact_sales`: Transactional order line items mapped to dimension surrogate keys.
+* **Data Catalog**: [`docs/data_catalog.md`](docs/data_catalog.md) provides detailed schema definitions and column descriptions.
+* **Data Quality Suite**: [`test/quality_checks_gold.sql`](test/quality_checks_gold.sql) tests surrogate key uniqueness and model referential integrity.
 
 ---
 
-### 📊 Data Consumption
-- BI dashboards and reports
-- Ad-hoc SQL queries
-- Machine Learning use cases
-- Supports decision-making and analytics
+### 📊 Data Consumption & Analytics Examples
+
+With the Star Schema in place, analytics queries become straightforward:
+
+#### 1. Total Sales by Product Category
+```sql
+SELECT 
+    p.category,
+    SUM(f.sales_amount) AS total_sales,
+    SUM(f.quantity)     AS total_units_sold
+FROM gold.fact_sales f
+JOIN gold.dim_products p ON f.product_key = p.product_key
+GROUP BY p.category
+ORDER BY total_sales DESC;
+```
+
+#### 2. Revenue by Customer Country
+```sql
+SELECT 
+    c.country,
+    COUNT(DISTINCT f.order_number) AS total_orders,
+    SUM(f.sales_amount)            AS total_revenue
+FROM gold.fact_sales f
+JOIN gold.dim_customers c ON f.customer_key = c.customer_key
+GROUP BY c.country
+ORDER BY total_revenue DESC;
+```
+
+---
+
+### ⚡ End-to-End Pipeline Execution Guide
+
+1. **Initialize Database & Schemas**:
+   ```sql
+   -- Run scripts/init_Database.sql
+   ```
+2. **Build Bronze Layer (Ingest Raw Data)**:
+   ```sql
+   -- Run scripts/bronze/ddl_trace.SQL
+   EXEC bronze.load_bronze;
+   ```
+3. **Build Silver Layer (Cleanse & Transform)**:
+   ```sql
+   -- Run scripts/silver/ddl_silver.sql
+   EXEC silver.load_silver;
+   -- Run test/quality_checks_silver.sql
+   ```
+4. **Build Gold Layer (Create Star Schema Views)**:
+   ```sql
+   -- Run scripts/gold/ddl_gold.sql
+   -- Run test/quality_checks_gold.sql
+   ```
 
 ---
 
 ### 🎯 Architecture Benefits
-- Clear separation of concerns
-- Scalable and maintainable design
-- Supports analytics, reporting, and ML
-- Easy debugging and data lineage tracking
+- **Clear Separation of Concerns**: Bronze (Raw), Silver (Cleansed), Gold (Curated Star Schema).
+- **Scalable & Maintainable**: Modular ETL procedures with built-in execution tracking and error handling.
+- **High Analytical Performance**: Star schema dimensional views eliminate complex join logic for BI tools.
+- **Enterprise Traceability**: Technical metadata tracking (`dwh_create_date`) and comprehensive data catalogs.
+
