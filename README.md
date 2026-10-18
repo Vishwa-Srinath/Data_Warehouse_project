@@ -37,11 +37,22 @@ This diagram represents the **end-to-end architecture of the SQL Data Warehouse*
 - Load type:
   - Full load (Truncate & Insert)
 - Transformations applied:
-  - Data cleaning
-  - Data standardization
-  - Data normalization
-  - Data enrichment
-- Purpose: Prepare high-quality data for business modeling
+  - **Data Cleansing**: Trim whitespace, handle NULLs, filter corrupt records
+  - **Data Standardization**: Consistent gender (`Male`/`Female`/`n/a`), marital status (`Single`/`Married`/`n/a`), and country names (`Germany`, `United States`)
+  - **Data Normalization & Formatting**: Date parsing (e.g., integer to `DATE`), business rule enforcement (`Sales = Quantity * Price`)
+  - **Data Enrichment**: Metadata columns (`dwh_create_date`), deriving end dates using `LEAD()`, extracting composite category IDs
+- Purpose: Prepare high-quality, validated data for business modeling
+
+![Silver Layer Data Flow](docs/data_flow.png)
+
+#### 🛠️ Silver Layer Implementation
+* **DDL Scripts**: [`scripts/silver/ddl_silver.sql`](scripts/silver/ddl_silver.sql) creates the 6 cleaned tables with metadata tracking.
+* **Automated ETL**: [`scripts/silver/proc_load_silver.sql`](scripts/silver/proc_load_silver.sql) executes the complete Truncate & Load pipeline with duration tracking and error handling:
+  ```sql
+  EXEC silver.load_silver;
+  ```
+* **Data Quality Suite**: [`test/quality_checks_silver.sql`](test/quality_checks_silver.sql) runs comprehensive validation queries (uniqueness, primary key integrity, invalid dates, business rules, whitespace checks).
+
 
 ---
 
